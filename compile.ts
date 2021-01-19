@@ -1,15 +1,28 @@
 import { is_kana, kana } from "./kana";
-import { Ruby, trim_word, Word } from "./trim";
+import { Ruby, trim_word, Word, MbArr, maybe_map, norm_map } from "./trim";
 
-export type PreCompile = {
-  word: string;
-  split?: number[];
-};
+export type PreCompile =
+  | {
+      src: string;
+      split?: MbArr<number>;
+      anto?: MbArr<PreCompile>;
+      rela?: MbArr<PreCompile>;
+      simi?: MbArr<PreCompile>;
+    }
+  | string;
 type TokenResult = {
   word: string[];
   kana?: string;
   pron?: number[];
   trans: { type: string[]; def: string };
+};
+
+export const is_preComp_undef = (src: PreCompile): boolean => {
+  if (typeof src == "string") {
+    return !src;
+  } else {
+    return !src.src;
+  }
 };
 
 export let stress_map = new Map([
@@ -264,20 +277,87 @@ const ruby_analyse = (word: string, kana: string, split: number[]): Ruby[] => {
   return ans;
 };
 
-export const compile = (src: PreCompile) => {
-  let tk = tokenfy(src.word);
-  let wd: any = {
-    word: tk.word,
-    pron: tk.pron,
-    trans: tk.trans,
-    ruby: tk.kana && ruby_analyse(tk.word[0], tk.kana, src.split),
-  };
-  Object.entries(src)
-    .filter((p) => p[0] != "word" && p[0] != "split")
-    .forEach((p) => {
-      wd[p[0]] = p[1];
-    });
-  return trim_word(wd);
+const exclude_set = new Set(["src", "anto", "simi", "rela"]);
+const helper = (src: PreCompile): Word => {
+  if (typeof src == "string") {
+    let tk = tokenfy(src);
+    return {
+      word: tk.word,
+      pron: tk.pron,
+      trans: tk.trans,
+      ruby: tk.kana && ruby_analyse(tk.word[0], tk.kana, []),
+    };
+  } else {
+    let tk = tokenfy(src.src);
+    let wd = {
+      word: tk.word,
+      pron: tk.pron,
+      trans: tk.trans,
+      ruby:
+        tk.kana &&
+        ruby_analyse(
+          tk.word[0],
+          tk.kana,
+          norm_map(src.split, (i) => i)
+        ),
+    };
+    Object.entries(src)
+      .filter((p) => !exclude_set.has(p[0]))
+      .forEach((p) => {
+        wd[p[0]] = p[1];
+      });
+    return wd;
+  }
+};
+
+const get_src = (pre: PreCompile): string => {
+  if (typeof pre == "string") {
+    return pre;
+  } else {
+    return pre.src;
+  }
+};
+
+const is_ref = (pre: PreCompile): boolean => get_src(pre).startsWith("!");
+
+const link_helper = (arr?: MbArr<PreCompile>): [Word[], string[]] => {
+  let ref: string[] = [];
+  let res: Word[] = [];
+  norm_map(
+    arr,
+    (p) => {
+      if (is_ref(p)) {
+        ref.push(get_src(p).substring(1));
+      } else {
+        let wd = helper(p);
+        ref.push(wd.word[0]);
+        res.push(wd);
+      }
+    },
+    Array.isArray,
+    is_preComp_undef
+  );
+  return [res, ref];
+};
+
+export const compile = (pre: PreCompile): Word[] => {
+  if (typeof pre == "string") {
+    return [helper(pre)];
+  }
+  let anto = link_helper(pre.anto);
+  let rela = link_helper(pre.rela);
+  let simi = link_helper(pre.simi);
+  return [
+    {
+      ...helper(pre),
+      anto: anto[1],
+      rela: rela[1],
+      simi: simi[1],
+    },
+    ...anto[0],
+    ...rela[0],
+    ...simi[0],
+  ];
 };
 
 // console.log(

@@ -10,10 +10,12 @@ import { html, load } from "cheerio";
 import dl from "download";
 import hash from "object-hash";
 
-const src = readFileSync("pre_compile/1.19.json5");
+const src = readFileSync("pre_compile/1.20.json5");
 writeFileSync(
   "gen.json5",
-  stringify((parse(src.toString()) as PreCompile[]).map(compile))
+  stringify(
+    (parse(src.toString()) as PreCompile[]).flatMap(compile).map(trim_word)
+  )
 );
 
 const file = readFileSync("n5_word.json5");
@@ -66,7 +68,7 @@ const dl_sound = async (word: NormWord): Promise<boolean> => {
     `sound/${word.roman + (word.pron?.[0] ?? "")}.mp3`,
     await dl(ans.sound)
   );
-  // console.log(`download ${word.word[0]}`);
+  console.log(`download ${word.word[0]}`);
   return true;
 };
 
@@ -82,7 +84,7 @@ const helper = async (till: number) => {
   }
 };
 
-//helper(1000);
+helper(1000);
 
 // console.log("abc dd 487 487 34 ".replace(/(?<![a-zA-Z])\s+(?![a-zA-Z])/g, ""));
 

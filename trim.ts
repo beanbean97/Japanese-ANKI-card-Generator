@@ -32,15 +32,12 @@ export const maybe_map = <T, Q>(
     return undefined;
   }
   if (is_arr(mb_arr)) {
-    if ((mb_arr as T[]).length == 1) {
-      if (is_undef((mb_arr as T[])[0])) {
-        return undefined;
-      }
-      return ops((mb_arr as T[])[0]);
-    } else if ((mb_arr as T[]).length == 0) {
-      return undefined;
-    }
-    return (mb_arr as T[]).map(ops);
+    let result = (mb_arr as T[]).filter((i) => !is_undef(i)).map(ops);
+    return result.length == 0
+      ? undefined
+      : result.length == 1
+      ? result[0]
+      : result;
   } else {
     if (is_undef(mb_arr as T)) {
       return undefined;
@@ -48,6 +45,25 @@ export const maybe_map = <T, Q>(
     return ops(mb_arr as T);
   }
 };
+export const norm_map = <T, Q>(
+  mb_arr: MbArr<T> | undefined,
+  ops: (ori: T) => Q,
+  is_arr: (ori: MbArr<T>) => boolean = Array.isArray,
+  is_undef: (ori: T) => boolean = defualt_is_undef
+): Q[] => {
+  if (typeof mb_arr == "undefined") {
+    return [];
+  }
+  if (is_arr(mb_arr)) {
+    return (mb_arr as T[]).filter((i) => !is_undef(i)).map(ops);
+  } else {
+    if (is_undef(mb_arr as T)) {
+      return [];
+    }
+    return [ops(mb_arr as T)];
+  }
+};
+
 export const is_ruby_arr = (ruby: MbArr<Ruby>): ruby is Ruby[] => {
   if (Array.isArray(ruby)) {
     if (ruby.length != 2) {
