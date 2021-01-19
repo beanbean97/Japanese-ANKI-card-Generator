@@ -1,0 +1,87 @@
+.front {
+  width: 100%;
+  text-align: center;
+}
+
+.invis {
+  display: none;
+}
+
+.card {
+  background-color: #333333;
+  font-family: "等线";
+  font-size: 20px;
+  color: #ffffff;
+}
+
+.body {
+  color: white;
+  background-color: #333333;
+  padding: 20px;
+}
+
+rt {
+  color: #999999;
+  font-weight: bolder;
+  font-size: 0.75rem;
+}
+.stress {
+  font-size: 0.8rem;
+}
+.main {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  border-radius: 25px;
+  background-color: #222222;
+  margin-bottom: 20px;
+}
+.wscomb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.wscomb > *:nth-child(2) {
+  margin-top: 4px;
+}
+
+.main.flex {
+  justify-content: center;
+}
+.subword .trans {
+  margin-left: 20px;
+}
+.flex {
+  display: flex;
+  flex-direction: row;
+}
+.flex:not(.main) {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  align-items: baseline;
+}
+.flex ul {
+  flex: 1;
+}
+.idiom .word {
+  color: pink;
+  min-width: 20%;
+}
+ul {
+  margin: 0;
+  padding-left: 40px;
+}
+ul.clear {
+  padding-left: 20px;
+}
+li:only-child {
+  list-style: none;
+}
+.label {
+  width: fit-content;
+  height: fit-content;
+  padding: 2px;
+  border: 1px solid #999999;
+  color: #999999;
+  border-radius: 5px;
+  font-size: 0.85rem;
+}

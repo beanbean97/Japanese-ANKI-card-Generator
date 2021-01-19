@@ -1,0 +1,5 @@
+*.mp3
+*.json5
+
+/build
+/node_modules
