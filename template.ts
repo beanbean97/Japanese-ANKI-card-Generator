@@ -23,7 +23,7 @@ const ruby_html = (word: string, ruby?: Ruby[]): string => {
         <ruby>
           ${word.substring(...r[1])}
           <rt>
-            ${r[ruby_idx][0]}
+            ${r[0]}
           </rt>
         </ruby>
         `;
@@ -168,3 +168,5 @@ export const gen_trans_html = (word: NormWord, link: Link) =>
 `
     .replace(/[\r\n]/g, "")
     .replace(/(?<![a-zA-Z])\s+(?![a-zA-Z])/g, "");
+
+// console.log(ruby_html("明後日", [["あさって", [0, 3]]]));

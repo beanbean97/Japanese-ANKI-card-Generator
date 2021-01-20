@@ -1,5 +1,6 @@
 *.mp3
 *.json5
+gen_ht
 
 /build
 /node_modules

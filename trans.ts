@@ -188,6 +188,12 @@ export const word_with_ops = (pre_wds: Word[]): WordSet => {
     }
     roman_map.get(key)!.add(w);
   }
+  const gen_ref = (word: NormWord): Ref => {
+    if (ref_map.get(word.word[0]).size != 1) {
+      return { word: word.word[0], kana: to_kana(word.word[0], word.ruby) };
+    }
+    return word.word[0];
+  };
   const get_by_ref = (ref: Ref): NormWord => {
     if (is_detailed_ref(ref)) {
       let ans = [...ref_map.get(ref.word)!].find(
@@ -231,6 +237,7 @@ export const word_with_ops = (pre_wds: Word[]): WordSet => {
       if (rel === undefined) {
         return;
       }
+      rel.add(gen_ref(w));
       for (const linked of [...rel].map(get_by_ref)) {
         if (linked[prop] === rel) {
           continue;
@@ -239,8 +246,7 @@ export const word_with_ops = (pre_wds: Word[]): WordSet => {
           linked[prop] = rel;
           continue;
         }
-        rel.add(w.word[0]);
-        linked[prop].forEach((v) => rel.add(v));
+        linked[prop].forEach(rel.add.bind(rel));
         linked[prop] = rel;
       }
     });
@@ -251,7 +257,7 @@ export const word_with_ops = (pre_wds: Word[]): WordSet => {
       if (anto.anto === undefined) {
         anto.anto = new Set();
       }
-      anto.anto.add(w.word[0]);
+      anto.anto.add(gen_ref(w));
     }
   }
   return {

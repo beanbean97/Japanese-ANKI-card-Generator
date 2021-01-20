@@ -10,7 +10,7 @@ import { html, load } from "cheerio";
 import dl from "download";
 import hash from "object-hash";
 
-const src = readFileSync("pre_compile/1.20.json5");
+const src = readFileSync("pre_compile/1.21.json5");
 writeFileSync(
   "gen.json5",
   stringify(
@@ -107,11 +107,13 @@ helper(1000);
 //   )
 // );
 
+// console.log(wd_set.get_by_ref("朝食"));
+
 let table: [hash: string, ft: string, bk: string][] = [];
 for (const [k, v] of wd_set.roman_map.entries()) {
   for (const w of v.values()) {
     table.push([
-      hash(w),
+      hash({ w: w.word, p: w.pron, r: w.roman }),
       w.trans[0].def,
       gen_trans_html(w, wd_set.get_link(w)),
     ]);

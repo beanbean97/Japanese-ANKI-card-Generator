@@ -13,6 +13,7 @@ export type PreCompile =
 type TokenResult = {
   word: string[];
   kana?: string;
+  from?: string;
   pron?: number[];
   trans: { type: string[]; def: string };
 };
@@ -48,7 +49,9 @@ const tokenfy = (src: string): TokenResult => {
   let uncomsume_idx = 0;
   while (uncomsume_idx < src.length) {
     if (
-      new RegExp(String.raw`[\(（${stress_chars}\d\[]`).test(src[uncomsume_idx])
+      new RegExp(String.raw`[\(（${stress_chars}\d\[［]`).test(
+        src[uncomsume_idx]
+      )
     ) {
       break;
     }
@@ -59,19 +62,28 @@ const tokenfy = (src: string): TokenResult => {
     .replace(/\s+/g, "")
     .split(/[\/\\]/);
   let kana: string;
+  let from: string;
   if (/[\(（]/.test(src[uncomsume_idx])) {
     uncomsume_idx++;
-    let kana_st = uncomsume_idx;
+    let st = uncomsume_idx;
+    let is_kana = true;
+    if (/[a-zA-Z]/.test(src[st])) {
+      is_kana = false;
+    }
     while (uncomsume_idx < src.length) {
       if (/[\)）]/.test(src[uncomsume_idx])) {
-        kana = src.substring(kana_st, uncomsume_idx).replace(/\s+/g, "");
+        if (is_kana) {
+          kana = src.substring(st, uncomsume_idx).replace(/\s+/g, "");
+        } else {
+          from = src.substring(st, uncomsume_idx).replace(/\s+/g, " ").trim();
+        }
         uncomsume_idx++;
         break;
       }
       uncomsume_idx++;
     }
   }
-  let pron: number[];
+  let pron: number[] = [];
   if (new RegExp(String.raw`[${stress_chars}\d]`).test(src[uncomsume_idx])) {
     let pron_st = uncomsume_idx;
     while (uncomsume_idx < src.length) {
@@ -100,6 +112,9 @@ const tokenfy = (src: string): TokenResult => {
       uncomsume_idx++;
     }
   }
+  if ((Math.max(...pron) ?? 0) > kana?.length ?? word.length) {
+    throw new Error(`${word} pron number error`);
+  }
   if (/[\[［]/.test(src[uncomsume_idx])) {
     uncomsume_idx++; //comsume [
     let type_st = uncomsume_idx;
@@ -119,6 +134,7 @@ const tokenfy = (src: string): TokenResult => {
     return {
       word,
       kana,
+      from,
       pron,
       trans: { type, def: src.substring(uncomsume_idx).replace(/\s+/g, "") },
     };
@@ -285,6 +301,7 @@ const helper = (src: PreCompile): Word => {
       word: tk.word,
       pron: tk.pron,
       trans: tk.trans,
+      from: tk.from && { lang: "en", word: tk.from },
       ruby: tk.kana && ruby_analyse(tk.word[0], tk.kana, []),
     };
   } else {
@@ -293,6 +310,7 @@ const helper = (src: PreCompile): Word => {
       word: tk.word,
       pron: tk.pron,
       trans: tk.trans,
+      from: tk.from && { lang: "en", word: tk.from },
       ruby:
         tk.kana &&
         ruby_analyse(
@@ -359,6 +377,8 @@ export const compile = (pre: PreCompile): Word[] => {
     ...simi[0],
   ];
 };
+
+// console.log(ruby_analyse("ロ", "くち", []));
 
 // console.log(
 //   compile({
