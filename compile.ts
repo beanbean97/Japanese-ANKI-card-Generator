@@ -83,35 +83,33 @@ const tokenfy = (src: string): TokenResult => {
       uncomsume_idx++;
     }
   }
-  let pron: number[] = [];
-  if (new RegExp(String.raw`[${stress_chars}\d]`).test(src[uncomsume_idx])) {
-    let pron_st = uncomsume_idx;
-    while (uncomsume_idx < src.length) {
-      if (/[\[［]/.test(src[uncomsume_idx])) {
-        pron = src
-          .substring(pron_st, uncomsume_idx)
-          .trim()
-          .split(
-            new RegExp(
-              [
-                String.raw`(?<=[${stress_chars}]|^)(?=[${stress_chars}\d])`,
-                String.raw`(?<=\d)(?=[${stress_chars}])`,
-                String.raw`\s+`,
-              ].join("|")
-            )
-          )
-          .map((p) => {
-            if (/\d+/.test(p)) {
-              return Number.parseInt(p);
-            } else {
-              return stress_map.get(p)!;
-            }
-          });
-        break;
-      }
-      uncomsume_idx++;
+  let pron_st = uncomsume_idx;
+  while (uncomsume_idx < src.length) {
+    if (/[\[\［]/.test(src[uncomsume_idx])) {
+      break;
     }
+    uncomsume_idx++;
   }
+  let pron_substr = src.substring(pron_st, uncomsume_idx).trim();
+  let pron = pron_substr
+    ? pron_substr
+        .split(
+          new RegExp(
+            [
+              String.raw`(?<=[${stress_chars}]|^)(?=[${stress_chars}\d])`,
+              String.raw`(?<=\d)(?=[${stress_chars}])`,
+              String.raw`\s+`,
+            ].join("|")
+          )
+        )
+        .map((p) => {
+          if (/\d+/.test(p)) {
+            return Number.parseInt(p);
+          } else {
+            return stress_map.get(p)!;
+          }
+        })
+    : [];
   if ((Math.max(...pron) ?? 0) > kana?.length ?? word.length) {
     throw new Error(`${word} pron number error`);
   }
@@ -139,7 +137,7 @@ const tokenfy = (src: string): TokenResult => {
       trans: { type, def: src.substring(uncomsume_idx).replace(/\s+/g, "") },
     };
   } else {
-    throw new Error(`can't compile ${word}`);
+    throw new Error(`can't compile ${src}`);
   }
 };
 
@@ -380,9 +378,4 @@ export const compile = (pre: PreCompile): Word[] => {
 
 // console.log(ruby_analyse("ロ", "くち", []));
 
-// console.log(
-//   compile({
-//     word: "覚 え る （おぼえる）③ ［他動2］记住;学会，掌握",
-//     split: [],
-//   })
-// );
+// console.log(compile("コ ン ビ ニ (convenience store) 0 ［名］便利店"));

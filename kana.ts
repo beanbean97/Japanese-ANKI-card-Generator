@@ -255,10 +255,12 @@ const norm_map = new Map([
   ["tyo", "cho"],
   ["tya", "cha"],
   ["tyu", "chu"],
+  ["tu", "tsu"],
+  ["wi", "uxi"],
 ]);
 const norm_kana = (raw: string) => {
   let ans = [...norm_map.entries()].reduce(
-    (sum, [k, v]) => sum.replace(k, v),
+    (sum, [k, v]) => sum.replace(new RegExp(k, "g"), v),
     raw
   );
   if (ans.slice(-2) != "nn" && ans.slice(-1) == "n") {

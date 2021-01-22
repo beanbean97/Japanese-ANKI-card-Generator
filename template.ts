@@ -1,4 +1,4 @@
-import { NormWord, Link, word_with_ops } from "./trans";
+import { NormWord, Link, word_with_ops, gen_sound_key } from "./trans";
 import { Ruby, is_range_ruby } from "./trim";
 import { is_kana } from "./kana";
 import { stress_map as rev_stress_map } from "./compile";
@@ -54,17 +54,22 @@ const root_html = (word: NormWord) =>
   </div>
 `;
 
+const stress_html = (pron?: number[], type = "div") =>
+  pron
+    ? `<${type} class="stress">
+        ${pron.map((p) => stress_map.get(p)!).join("")}
+      </${type}>`
+    : "";
+
 const main_word_html = (word: NormWord) => `
   <div class="main flex">
     <div class="wscomb">
       <div class="word">
-      ${word.word.map((w) => ruby_html(w, word.ruby)).join(" / ")}
+        ${word.word.map((w) => ruby_html(w, word.ruby)).join(" ・ ")}
       </div>
-      <div class="stress">
-      ${word.pron?.map((p) => stress_map.get(p)!).join("")}
-      </div>
+      ${stress_html(word.pron)}
     </div>
-    <div class="sound">[sound:${word.roman + (word.pron?.[0] ?? "")}.mp3]</div>
+    <div class="sound">[sound:${gen_sound_key(word)}.mp3]</div>
   </div>
   <div class="flex">
     <div class="label">释义</div>
@@ -87,9 +92,7 @@ const sub_word_html = (word: NormWord) => `
       <span class="word">
         ${word.word.map((w) => ruby_html(w, word.ruby)).join(" / ")}
       </span>
-      <span class="stress">
-        ${word.pron?.map((p) => stress_map.get(p)!).join("")}
-      </span>
+      ${stress_html(word.pron, "span")}
     </div>
     <ul class="trans ${word.trans.length == 1 ? "clear" : ""}">
     ${word.trans.map(

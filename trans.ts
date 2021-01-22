@@ -102,13 +102,30 @@ const to_arr = <T>(
   }
   return mb_arr as T[];
 };
-const to_ref_set = (mb_arr: MbArr<Ref> | undefined): Set<Ref> | undefined => {
+const ref_to_key = (r: Ref) => {
+  if (typeof r == "string") {
+    return r;
+  } else {
+    return `${r.word}+${r.kana}`;
+  }
+};
+const key_to_ref = (k: string): Ref => {
+  if (k.includes("+")) {
+    let res = k.split("+").map((s) => s.trim());
+    return { word: res[0], kana: res[1] };
+  } else {
+    return k;
+  }
+};
+const to_ref_set = (
+  mb_arr: MbArr<Ref> | undefined
+): Set<string> | undefined => {
   if (mb_arr === undefined) {
     return undefined;
   } else if (!Array.isArray(mb_arr)) {
-    return new Set([mb_arr]);
+    return new Set([mb_arr].map(ref_to_key));
   }
-  return new Set(mb_arr);
+  return new Set(mb_arr.map(ref_to_key));
 };
 export type NormWord = {
   word: string[];
@@ -116,9 +133,9 @@ export type NormWord = {
   sound?: string;
   pron?: number[];
   ruby?: Ruby[];
-  rela?: Set<Ref>;
-  simi?: Set<Ref>;
-  anto?: Set<Ref>;
+  rela?: Set<string>;
+  simi?: Set<string>;
+  anto?: Set<string>;
   from?: { lang: string; word: string };
   idiom?: { word: string; ruby?: Ruby[]; trans: string }[];
   trans: { type: string[]; def: string }[];
@@ -159,6 +176,8 @@ export type WordSet = {
   get_by_pron: (w: NormWord) => NormWord[];
 };
 
+export const gen_sound_key = (w: NormWord) => w.roman + (w.pron?.[0] ?? "");
+
 export const word_with_ops = (pre_wds: Word[]): WordSet => {
   let wds = pre_wds.map(word_normalize);
   const ref_map = new Map<string, Set<NormWord>>();
@@ -182,7 +201,7 @@ export const word_with_ops = (pre_wds: Word[]): WordSet => {
     }
   }
   for (const w of wds) {
-    let key = w.roman + w.pron?.[0] ?? "";
+    let key = gen_sound_key(w);
     if (!roman_map.has(key)) {
       roman_map.set(key, new Set());
     }
@@ -218,15 +237,23 @@ export const word_with_ops = (pre_wds: Word[]): WordSet => {
     }
   };
   const get_link = (w: NormWord) => {
-    let same_pron = [...roman_map.get(w.roman + w.pron?.[0] ?? "")!].filter(
+    let same_pron = [...roman_map.get(gen_sound_key(w))].filter(
       (r) => r.word[0] != w.word[0]
     );
     return {
-      anto: w.anto && [...w.anto].map(get_by_ref),
+      anto: w.anto && [...w.anto].map(key_to_ref).map(get_by_ref),
       rela:
-        w.rela && [...w.rela].filter((s) => !is_ref_eq(s, w)).map(get_by_ref),
+        w.rela &&
+        [...w.rela]
+          .map(key_to_ref)
+          .filter((s) => !is_ref_eq(s, w))
+          .map(get_by_ref),
       simi:
-        w.simi && [...w.simi].filter((s) => !is_ref_eq(s, w)).map(get_by_ref),
+        w.simi &&
+        [...w.simi]
+          .map(key_to_ref)
+          .filter((s) => !is_ref_eq(s, w))
+          .map(get_by_ref),
       same_pron: same_pron.length == 0 ? undefined : same_pron,
     };
   };
@@ -237,8 +264,8 @@ export const word_with_ops = (pre_wds: Word[]): WordSet => {
       if (rel === undefined) {
         return;
       }
-      rel.add(gen_ref(w));
-      for (const linked of [...rel].map(get_by_ref)) {
+      rel.add(ref_to_key(gen_ref(w)));
+      for (const linked of [...rel].map(key_to_ref).map(get_by_ref)) {
         if (linked[prop] === rel) {
           continue;
         }
@@ -253,11 +280,11 @@ export const word_with_ops = (pre_wds: Word[]): WordSet => {
     if (w.anto === undefined) {
       continue;
     }
-    for (const anto of [...w.anto].map(get_by_ref)) {
+    for (const anto of [...w.anto].map(key_to_ref).map(get_by_ref)) {
       if (anto.anto === undefined) {
         anto.anto = new Set();
       }
-      anto.anto.add(gen_ref(w));
+      anto.anto.add(ref_to_key(gen_ref(w)));
     }
   }
   return {
