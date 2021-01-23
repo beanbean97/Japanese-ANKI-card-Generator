@@ -2,14 +2,14 @@ import { readFileSync, writeFileSync } from "fs";
 import { parse, stringify } from "json5";
 import { compile, PreCompile } from "./compile";
 import { Word, trim_word } from "./trim";
-import { word_with_ops } from "./trans";
+import { word_with_ops, to_roman } from "./trans";
 import { gen_trans_html, gen_pron_html } from "./template";
 import hash from "object-hash";
 import { dl_sounds } from "./sound";
 import arrayShuffle from "array-shuffle";
 import { chunk } from "lodash";
 
-const src = readFileSync("pre_compile/1.22.json5");
+const src = readFileSync("pre_compile/1.23.json5");
 writeFileSync(
   "gen.json5",
   stringify(

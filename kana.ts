@@ -213,6 +213,7 @@ export const pron_map = new Map([
   ["リャ", "rya"],
   ["リュ", "ryu"],
   ["リョ", "ryo"],
+  ["ジェ", "je"],
   ["ファ", "fa"],
   ["フィ", "fi"],
   ["フォ", "fu"],
@@ -255,10 +256,26 @@ const norm_map = new Map([
   ["tyo", "cho"],
   ["tya", "cha"],
   ["tyu", "chu"],
+  ["jye", "je"],
   ["tu", "tsu"],
   ["wi", "uxi"],
+  ["si", "shi"],
+  ["jyu", "ju"],
+  ["cyu", "chu"],
+  ["cya", "cha"],
+  ["cyo", "cho"],
 ]);
 const norm_kana = (raw: string) => {
+  while (true) {
+    let long_idx = raw.indexOf("-");
+    if (long_idx != -1) {
+      raw = `${raw.substring(0, long_idx)}${raw[long_idx - 1]}${raw.substring(
+        long_idx + 1
+      )}`;
+    } else {
+      break;
+    }
+  }
   let ans = [...norm_map.entries()].reduce(
     (sum, [k, v]) => sum.replace(new RegExp(k, "g"), v),
     raw

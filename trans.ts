@@ -87,7 +87,7 @@ const kana_to_roman = (kana: string) => {
   }
   return roman;
 };
-const to_roman = (word: string, ruby?: Ruby[]) => {
+export const to_roman = (word: string, ruby?: Ruby[]) => {
   let kana = to_kana(word, ruby);
   return kana_to_roman(kana);
 };

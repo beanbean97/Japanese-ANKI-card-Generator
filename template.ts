@@ -90,7 +90,7 @@ const sub_word_html = (word: NormWord) => `
   <div class="flex subword">
     <div>
       <span class="word">
-        ${word.word.map((w) => ruby_html(w, word.ruby)).join(" / ")}
+        ${word.word.map((w) => ruby_html(w, word.ruby)).join(" ・ ")}
       </span>
       ${stress_html(word.pron, "span")}
     </div>

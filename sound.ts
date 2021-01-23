@@ -46,7 +46,7 @@ const dl_sound = async (word: NormWord): Promise<boolean> => {
     .get();
   let ans = words.find((w) => is_kana_eq(word.roman, w.roman));
   if (!ans) {
-    throw new Error(`can't find word ${word.word[0]}`);
+    throw new Error(`can't find word ${word.word[0]}, ${word.roman}`);
   }
   writeFileSync(
     `sound/${word.roman + (word.pron?.[0] ?? "")}.mp3`,
